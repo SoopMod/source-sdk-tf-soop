@@ -536,6 +536,7 @@ IMPLEMENT_CLIENTCLASS_DT_NOBASE( C_TFRagdoll, DT_TFRagdoll, CTFRagdoll )
 	RecvPropFloat( RECVINFO( m_flHeadScale ) ),
 	RecvPropFloat( RECVINFO( m_flTorsoScale ) ),
 	RecvPropFloat( RECVINFO( m_flHandScale ) ),
+	RecvPropFloat( RECVINFO( m_flNeckScale ) ),
 END_RECV_TABLE()
 
 //-----------------------------------------------------------------------------
@@ -574,6 +575,7 @@ C_TFRagdoll::C_TFRagdoll()
 	m_flHeadScale = 1.f;
 	m_flTorsoScale = 1.f;
 	m_flHandScale = 1.f;
+	m_flNeckScale = 1.f;
 
 	UseClientSideAnimation();
 
@@ -700,6 +702,7 @@ void C_TFRagdoll::CreateTFRagdoll()
 		m_flHeadScale = pPlayer->GetHeadScale();
 		m_flTorsoScale = pPlayer->GetTorsoScale();
 		m_flHandScale = pPlayer->GetHandScale();
+		m_flNeckScale = pPlayer->GetNeckScale();
 	}
 
 	if ( nModelIndex != -1 )
@@ -3733,6 +3736,7 @@ IMPLEMENT_CLIENTCLASS_DT( C_TFPlayer, DT_TFPlayer, CTFPlayer )
 	RecvPropFloat( RECVINFO( m_flHeadScale ) ),
 	RecvPropFloat( RECVINFO( m_flTorsoScale ) ),
 	RecvPropFloat( RECVINFO( m_flHandScale ) ),
+	RecvPropFloat( RECVINFO( m_flNeckScale ) ),
 
 	RecvPropBool( RECVINFO( m_bUseBossHealthBar ) ),
 
@@ -3908,6 +3912,7 @@ C_TFPlayer::C_TFPlayer() :
 	m_flHeadScale = 1.f;
 	m_flTorsoScale = 1.f;
 	m_flHandScale = 1.f;
+	m_flNeckScale = 1.f;
 
 	m_bIsMiniBoss = false;
 	m_bUseBossHealthBar = false;
@@ -8712,6 +8717,7 @@ void C_TFPlayer::BuildTransformations( CStudioHdr *hdr, Vector *pos, Quaternion 
 	float flHeadScale = m_Shared.InCond( TF_COND_HALLOWEEN_GHOST_MODE ) ? 1.5 : m_flHeadScale;
 	BuildBigHeadTransformations( this, hdr, pos, q, cameraTransform, boneMask, boneComputed, flHeadScale );
 	BuildTorsoScaleTransformations( this, hdr, pos, q, cameraTransform, boneMask, boneComputed, m_flTorsoScale, GetPlayerClass()->GetClassIndex() );
+	BuildNeckScaleTransformations( this, hdr, pos, q, cameraTransform, boneMask, boneComputed, m_flNeckScale, GetPlayerClass()->GetClassIndex() );
 	BuildHandScaleTransformations( this, hdr, pos, q, cameraTransform, boneMask, boneComputed, m_flHandScale );
 
 	BuildFirstPersonMeathookTransformations( hdr, pos, q, cameraTransform, boneMask, boneComputed, "bip_head" );
@@ -8740,6 +8746,10 @@ void C_TFRagdoll::BuildTransformations( CStudioHdr *hdr, Vector *pos, Quaternion
 	{
 		m_BoneAccessor.SetWritableBones( BONE_USED_BY_ANYTHING );
 		BuildNeckScaleTransformations( this, hdr, pos, q, cameraTransform, boneMask, boneComputed, 0.5f, GetClass() );
+	}
+	else
+	{
+		BuildNeckScaleTransformations( this, hdr, pos, q, cameraTransform, boneMask, boneComputed, m_flNeckScale, GetClass() );
 	}
 }
 
