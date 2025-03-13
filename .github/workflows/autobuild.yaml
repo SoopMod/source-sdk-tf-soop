@@ -1,0 +1,32 @@
+name: Continuous Builds
+
+on:
+  push:
+    branches:
+    - '**'
+    tags-ignore:
+    - '**'  # Skip CI builds on cut releases; build-tagged-release handles this
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+
+    # checkout the github actions / workflow
+    - uses: actions/checkout@v4
+      with:
+        sparse-checkout: |
+          .github
+        fetch-depth: 0
+
+    - id: build-project
+      name: Build Project
+      uses: ./.github/actions/build-project
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: game
+        path: "${{ github.workspace }}/game"

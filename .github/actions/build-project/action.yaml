@@ -1,0 +1,42 @@
+name: Build Project
+description: Builds the SDK
+runs:
+  using: composite
+  steps:
+
+    # Support incremental builds by caching (almost) the entire workspace.
+    # 
+    # Caching the build outputs alone won't do since missing files will be created with current
+    # mtimes.
+    - uses: actions/cache@v4
+      name: Cache Repository State
+      with:
+        # game.zip is the generated 'release' archive
+        path: |
+          ${{ github.workspace }}
+          !${{ github.workspace }}/.git
+          !${{ github.workspace }}/game.zip
+        key: ${{ runner.os }}-sdk-mod-${{ github.ref_name }}-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-sdk-mod-${{ github.ref_name }}-
+          ${{ runner.os }}-sdk-mod-${{ github.base_ref }}-
+          ${{ runner.os }}-sdk-mod-main-
+
+    # Replace changed files with those from the current ref.
+    - uses: actions/checkout@v4
+      with:
+        clean: false
+
+    - name: Add msbuild to PATH (Windows)
+      if: runner.os == 'Windows'
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Prepare project solution
+      shell: cmd
+      working-directory: "${{ github.workspace }}/src"
+      run: 'devtools\bin\vpc.exe /tf /define:SOURCESDK +game /mksln game.sln'
+
+    - name: Build solution
+      shell: cmd
+      working-directory: "${{ github.workspace }}/src"
+      run: msbuild game.sln /p:Platform="win64" /p:Configuration="Release"
