@@ -8450,6 +8450,20 @@ void BuildDecapitatedTransformations( CBaseAnimating *pObject, CStudioHdr *hdr, 
 		matrix3x4_t  &transformhelmet = pObject->GetBoneForWrite( iHelm );
 		MatrixScaleByZero ( transformhelmet );
 	}
+
+	iHelm = pObject->LookupBone( "prp_cig" );
+	if ( iHelm != -1 )
+	{
+		matrix3x4_t  &transformhelmet = pObject->GetBoneForWrite( iHelm );
+		MatrixScaleByZero ( transformhelmet );
+	}
+
+	iHelm = pObject->LookupBone( "prp_glasses" );
+	if ( iHelm != -1 )
+	{
+		matrix3x4_t  &transformhelmet = pObject->GetBoneForWrite( iHelm );
+		MatrixScaleByZero ( transformhelmet );
+	}
 }
 
 
@@ -8489,6 +8503,16 @@ void BuildHeadSmashTransformations( CBaseAnimating *pObject, CStudioHdr *hdr, Ve
 		{
 			matrix3x4_t  &cig_transform = pObject->GetBoneForWrite( iCig );
 			MatrixScaleByZero ( cig_transform );
+		}
+	}
+
+	if ( iClass == TF_CLASS_MEDIC )
+	{
+		int iGlasses = pObject->LookupBone( "prp_glasses" );
+		if ( iGlasses != -1 )
+		{
+			matrix3x4_t  &glasses_transform = pObject->GetBoneForWrite( iGlasses );
+			MatrixScaleByZero ( glasses_transform );
 		}
 	}
 
@@ -8666,60 +8690,58 @@ void BuildNeckScaleTransformations( CBaseAnimating *pObject, CStudioHdr *hdr, Ve
 	if ( !pObject || flScale == 1.f )
 		return;
 
-	int iHead = pObject->LookupBone( "bip_head" );
-	if ( iHead == -1 )
+	int iNeck = pObject->LookupBone( "bip_neck" );
+	if ( iNeck == -1 )
 		return;
 
-	matrix3x4_t &head_transform = pObject->GetBoneForWrite( iHead );
+	const studiohdr_t *pHdr = modelinfo->GetStudiomodel( pObject->GetModel() );
 
-	Vector neck_position, head_position, position, new_head_position(0, 0, 0);
+	int iTargetBone = iNeck;
 
-	// Scale head away from neck
-	int iNeck = pObject->LookupBone( "bip_neck" );
-	if ( iNeck != -1 )
+	// only neck to head for neck_scale
+	static const char *s_neckBoneNames[] =
 	{
-		matrix3x4_t &neck_transform = pObject->GetBoneForWrite( iNeck );
-		MatrixPosition( neck_transform, neck_position );
-		MatrixPosition( head_transform, head_position );
-		position = flScale * ( head_position - neck_position );
-		new_head_position = neck_position + position;
-		MatrixSetTranslation( new_head_position, head_transform );
-	}
+		"bip_head"
+	};
 
-	// Store helmet bone offset.
-	int iHelm = pObject->LookupBone( "prp_helmet" );
-	if ( iHelm != -1 ) 
+	// Compress torso bones toward pelvis in order.
+	for ( int i=0; i<ARRAYSIZE( s_neckBoneNames ); ++i )
 	{
-		matrix3x4_t  &helmet_transform = pObject->GetBoneForWrite( iHelm );
-		MatrixPosition( helmet_transform, position );
-		MatrixSetTranslation( position - head_position + new_head_position, helmet_transform );
-	}
+		int iMoveBone = pObject->LookupBone( s_neckBoneNames[i] );
+		if ( iMoveBone == -1 )
+		{
+			return;
+		}
 
-	// Store alternate helmet bone offset.
-	iHelm = pObject->LookupBone( "prp_hat" );
-	if ( iHelm != -1 )
-	{
-		matrix3x4_t  &hat_transform = pObject->GetBoneForWrite( iHelm );
-		MatrixPosition( hat_transform, position );
-		MatrixSetTranslation( position - head_position + new_head_position, hat_transform );
-	}
+		const matrix3x4_t &targetBone_transform = pObject->GetBone( iTargetBone );
+		Vector vTargetBonePos;
+		MatrixPosition( targetBone_transform, vTargetBonePos );
 
-	int iCig = pObject->LookupBone( "prp_cig" );
-	if ( iCig != -1 )
-	{
-		matrix3x4_t &cig_transform = pObject->GetBoneForWrite( iCig );
-		MatrixPosition( cig_transform, position );
-		MatrixSetTranslation( position - head_position + new_head_position, cig_transform );
-	}
+		matrix3x4_t &moveBone_transform = pObject->GetBoneForWrite( iMoveBone );
+		Vector vMoveBonePos;
+		MatrixPosition( moveBone_transform, vMoveBonePos );
+		Vector vNewMovePos = vTargetBonePos + flScale * ( vMoveBonePos - vTargetBonePos );
+		MatrixSetTranslation( vNewMovePos, moveBone_transform );
 
-	int iGlasses = pObject->LookupBone( "prp_glasses" );
-	if ( iGlasses != -1 )
-	{
-		matrix3x4_t &glasses_transform = pObject->GetBoneForWrite( iGlasses );
-		MatrixPosition( glasses_transform, position );
-		MatrixSetTranslation( position - head_position + new_head_position, glasses_transform );
-	}
+		iTargetBone = iMoveBone;
 
+		Vector vOffset = vNewMovePos - vMoveBonePos;
+
+		// apply to all its child bones
+		CUtlVector< const mstudiobone_t * > vecChildBones;
+		AppendChildren_R( &vecChildBones, pHdr, iMoveBone );
+		for ( int j=0; j<vecChildBones.Count(); ++j )
+		{
+			int iChildBone = pObject->LookupBone( vecChildBones[j]->pszName() );
+			if ( iChildBone == -1 )
+				continue;
+
+			matrix3x4_t &childBone_transform = pObject->GetBoneForWrite( iChildBone );
+			Vector vChildPos;
+			MatrixPosition( childBone_transform, vChildPos );
+			MatrixSetTranslation( vChildPos + vOffset, childBone_transform );
+		}
+	}
 }
 
 
