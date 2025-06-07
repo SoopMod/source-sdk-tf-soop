@@ -1737,7 +1737,7 @@ void CTFPlayer::TFPlayerThink()
 	// scale our torso
 	m_flHandScale = Approach( GetDesiredHandScale(), m_flHandScale, GetHandScaleSpeed() );
 
-	// scale our torso
+	// scale our neck
 	m_flNeckScale = Approach( GetDesiredNeckScale(), m_flNeckScale, GetNeckScaleSpeed() );
 
 /*
