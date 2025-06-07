@@ -8681,8 +8681,9 @@ void BuildNeckScaleTransformations( CBaseAnimating *pObject, CStudioHdr *hdr, Ve
 		matrix3x4_t &neck_transform = pObject->GetBoneForWrite( iNeck );
 		MatrixPosition( neck_transform, neck_position );
 		MatrixPosition( head_transform, head_position );
-		offset = flScale * ( head_position - neck_position );
-		MatrixSetTranslation( neck_position + offset, head_transform );
+		position = flScale * ( head_position - neck_position );
+		offset = position;
+		MatrixSetTranslation( neck_position + position, head_transform );
 	}
 
 	// Store helmet bone offset.
@@ -8691,7 +8692,7 @@ void BuildNeckScaleTransformations( CBaseAnimating *pObject, CStudioHdr *hdr, Ve
 	{
 		matrix3x4_t  &helmet_transform = pObject->GetBoneForWrite( iHelm );
 		MatrixPosition( helmet_transform, position );
-		MatrixSetTranslation( position + offset, helmet_transform );
+		MatrixSetTranslation( position - head_position + neck_position + offset, helmet_transform );
 	}
 
 	// Store alternate helmet bone offset.
@@ -8700,7 +8701,7 @@ void BuildNeckScaleTransformations( CBaseAnimating *pObject, CStudioHdr *hdr, Ve
 	{
 		matrix3x4_t  &hat_transform = pObject->GetBoneForWrite( iHelm );
 		MatrixPosition( hat_transform, position );
-		MatrixSetTranslation( position + offset, hat_transform );
+		MatrixSetTranslation( position - head_position + neck_position + offset, hat_transform );
 	}
 
 	int iCig = pObject->LookupBone( "prp_cig" );
@@ -8708,7 +8709,7 @@ void BuildNeckScaleTransformations( CBaseAnimating *pObject, CStudioHdr *hdr, Ve
 	{
 		matrix3x4_t &cig_transform = pObject->GetBoneForWrite( iCig );
 		MatrixPosition( cig_transform, position );
-		MatrixSetTranslation( position + offset, cig_transform );
+		MatrixSetTranslation( position - head_position + neck_position + offset, cig_transform );
 	}
 
 	int iGlasses = pObject->LookupBone( "prp_glasses" );
@@ -8716,7 +8717,7 @@ void BuildNeckScaleTransformations( CBaseAnimating *pObject, CStudioHdr *hdr, Ve
 	{
 		matrix3x4_t &glasses_transform = pObject->GetBoneForWrite( iGlasses );
 		MatrixPosition( glasses_transform, position );
-		MatrixSetTranslation( position + offset, glasses_transform );
+		MatrixSetTranslation( position - head_position + neck_position + offset, glasses_transform );
 	}
 
 }
