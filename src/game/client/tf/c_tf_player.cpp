@@ -8672,7 +8672,7 @@ void BuildNeckScaleTransformations( CBaseAnimating *pObject, CStudioHdr *hdr, Ve
 
 	matrix3x4_t &head_transform = pObject->GetBoneForWrite( iHead );
 
-	Vector neck_position, head_position, position, offset(0, 0, 0);
+	Vector neck_position, head_position, position, new_head_position(0, 0, 0);
 
 	// Scale head away from neck
 	int iNeck = pObject->LookupBone( "bip_neck" );
@@ -8682,8 +8682,8 @@ void BuildNeckScaleTransformations( CBaseAnimating *pObject, CStudioHdr *hdr, Ve
 		MatrixPosition( neck_transform, neck_position );
 		MatrixPosition( head_transform, head_position );
 		position = flScale * ( head_position - neck_position );
-		offset = position;
-		MatrixSetTranslation( neck_position + position, head_transform );
+		new_head_position = neck_position + position;
+		MatrixSetTranslation( new_head_position, head_transform );
 	}
 
 	// Store helmet bone offset.
@@ -8692,7 +8692,7 @@ void BuildNeckScaleTransformations( CBaseAnimating *pObject, CStudioHdr *hdr, Ve
 	{
 		matrix3x4_t  &helmet_transform = pObject->GetBoneForWrite( iHelm );
 		MatrixPosition( helmet_transform, position );
-		MatrixSetTranslation( position - head_position + neck_position + offset, helmet_transform );
+		MatrixSetTranslation( position - head_position + new_head_position, helmet_transform );
 	}
 
 	// Store alternate helmet bone offset.
@@ -8701,7 +8701,7 @@ void BuildNeckScaleTransformations( CBaseAnimating *pObject, CStudioHdr *hdr, Ve
 	{
 		matrix3x4_t  &hat_transform = pObject->GetBoneForWrite( iHelm );
 		MatrixPosition( hat_transform, position );
-		MatrixSetTranslation( position - head_position + neck_position + offset, hat_transform );
+		MatrixSetTranslation( position - head_position + new_head_position, hat_transform );
 	}
 
 	int iCig = pObject->LookupBone( "prp_cig" );
@@ -8709,7 +8709,7 @@ void BuildNeckScaleTransformations( CBaseAnimating *pObject, CStudioHdr *hdr, Ve
 	{
 		matrix3x4_t &cig_transform = pObject->GetBoneForWrite( iCig );
 		MatrixPosition( cig_transform, position );
-		MatrixSetTranslation( position - head_position + neck_position + offset, cig_transform );
+		MatrixSetTranslation( position - head_position + new_head_position, cig_transform );
 	}
 
 	int iGlasses = pObject->LookupBone( "prp_glasses" );
@@ -8717,7 +8717,7 @@ void BuildNeckScaleTransformations( CBaseAnimating *pObject, CStudioHdr *hdr, Ve
 	{
 		matrix3x4_t &glasses_transform = pObject->GetBoneForWrite( iGlasses );
 		MatrixPosition( glasses_transform, position );
-		MatrixSetTranslation( position - head_position + neck_position + offset, glasses_transform );
+		MatrixSetTranslation( position - head_position + new_head_position, glasses_transform );
 	}
 
 }
